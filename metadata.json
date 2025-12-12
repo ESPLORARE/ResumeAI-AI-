@@ -1,0 +1,5 @@
+{
+  "name": "ResumeAI - 智能简历筛选",
+  "description": "基于 Google Gemini 的 AI 简历筛选工具，通过分析简历与职位描述的匹配度，提供评分、人格画像及招聘建议。",
+  "requestFramePermissions": []
+}
