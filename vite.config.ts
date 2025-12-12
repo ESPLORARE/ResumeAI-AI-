@@ -5,8 +5,8 @@ import react from '@vitejs/plugin-react';
 export default defineConfig(({ mode }) => {
     const env = loadEnv(mode, '.', '');
     return {
-      // GitHub Pages 部署在仓库子路径下，确保资源路径正确
-      base: '/ResumeAI-AI-/',
+      // 使用相对路径，适配 GitHub Pages 根或子路径部署
+      base: './',
       server: {
         port: 3000,
         host: '0.0.0.0',
