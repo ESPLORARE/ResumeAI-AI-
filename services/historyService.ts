@@ -17,6 +17,7 @@ export const saveSession = (job: JobContext, items: BatchItem[]): HistorySession
       timestamp: Date.now(),
       jobTitle: job.title,
       jobDescription: job.description,
+      headcount: job.headcount,
       items: items,
       totalCandidates: items.length,
       averageScore

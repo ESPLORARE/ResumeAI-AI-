@@ -1,5 +1,5 @@
 import React from 'react';
-import { X, History, Trash2, Calendar, Briefcase, ChevronRight, AlertCircle } from 'lucide-react';
+import { X, History, Trash2, Calendar, Briefcase, ChevronRight, AlertCircle, Users } from 'lucide-react';
 import { HistorySession } from '../types';
 
 interface HistoryDrawerProps {
@@ -89,6 +89,12 @@ const HistoryDrawer: React.FC<HistoryDrawerProps> = ({
                         <Briefcase className="w-3 h-3" />
                         {session.totalCandidates} 位候选人
                     </span>
+                    {session.headcount ? (
+                        <span className="flex items-center gap-1">
+                            <Users className="w-3 h-3" />
+                            录取名额 {session.headcount}
+                        </span>
+                    ) : null}
                 </div>
 
                 <div className="flex items-center justify-between">

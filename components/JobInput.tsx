@@ -8,6 +8,19 @@ interface JobInputProps {
 }
 
 const JobInput: React.FC<JobInputProps> = ({ jobContext, setJobContext }) => {
+  const handleHeadcountChange = (value: string) => {
+    if (value === '') {
+      setJobContext({ ...jobContext, headcount: undefined });
+      return;
+    }
+
+    const parsed = parseInt(value, 10);
+    setJobContext({ 
+      ...jobContext, 
+      headcount: Number.isNaN(parsed) ? jobContext.headcount : Math.max(1, parsed) 
+    });
+  };
+
   return (
     <div className="bg-white rounded-xl border border-gray-200 p-6 shadow-sm space-y-4">
       <div className="flex items-center gap-2 mb-2">
@@ -22,6 +35,21 @@ const JobInput: React.FC<JobInputProps> = ({ jobContext, setJobContext }) => {
           value={jobContext.title}
           onChange={(e) => setJobContext({ ...jobContext, title: e.target.value })}
           placeholder="例如：高级前端工程师"
+          className="w-full p-2.5 bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition"
+        />
+      </div>
+
+      <div>
+        <label className="block text-sm font-medium text-gray-700 mb-1 flex items-center gap-2">
+          计划录取人数
+          <span className="text-xs font-normal text-gray-500">用于结果页高亮 Top N 候选人</span>
+        </label>
+        <input
+          type="number"
+          min={1}
+          value={jobContext.headcount ?? ''}
+          onChange={(e) => handleHeadcountChange(e.target.value)}
+          placeholder="例如：3"
           className="w-full p-2.5 bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition"
         />
       </div>

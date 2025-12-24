@@ -5,16 +5,28 @@ import { Loader2, CheckCircle, AlertTriangle, XCircle, ChevronRight, FileText, A
 interface BatchResultsProps {
   items: BatchItem[];
   onViewDetails: (item: BatchItem) => void;
+  headcount?: number;
 }
 
 type SortOption = 'scoreDesc' | 'scoreAsc' | 'nameAsc';
 type FilterStatus = 'ALL' | 'HIRE' | 'MAYBE' | 'REJECT';
 
-const BatchResults: React.FC<BatchResultsProps> = ({ items, onViewDetails }) => {
+const BatchResults: React.FC<BatchResultsProps> = ({ items, onViewDetails, headcount }) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [sortBy, setSortBy] = useState<SortOption>('scoreDesc');
   const [filterRec, setFilterRec] = useState<FilterStatus>('ALL');
   const [minScore, setMinScore] = useState<number>(0);
+
+  const topHireIds = useMemo(() => {
+    if (!headcount || headcount <= 0) return new Set<string>();
+
+    const completed = items
+      .filter(item => item.status === 'completed' && item.result)
+      .sort((a, b) => (b.result?.score || 0) - (a.result?.score || 0))
+      .slice(0, headcount);
+
+    return new Set(completed.map(item => item.file.id));
+  }, [headcount, items]);
 
   // Process items based on filters and sort
   const processedItems = useMemo(() => {
@@ -100,6 +112,17 @@ const BatchResults: React.FC<BatchResultsProps> = ({ items, onViewDetails }) => 
              </div>
         </div>
 
+        {headcount && headcount > 0 && (
+            <div className="bg-green-50 border border-green-100 text-green-700 px-4 py-3 rounded-xl shadow-sm flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+                <div className="text-sm font-semibold">
+                    录取名额：{headcount} 位
+                </div>
+                <div className="text-xs text-green-600">
+                    已自动高亮分数最高的 {headcount} 位候选人，方便快速锁定录用名单。
+                </div>
+            </div>
+        )}
+
         {/* Control Bar */}
         <div className="bg-white p-4 rounded-xl border border-gray-200 shadow-sm flex flex-wrap gap-4 items-center">
             
@@ -172,50 +195,62 @@ const BatchResults: React.FC<BatchResultsProps> = ({ items, onViewDetails }) => 
                         </tr>
                     </thead>
                     <tbody className="divide-y divide-gray-100">
-                        {processedItems.map((item) => (
-                            <tr 
-                                key={item.file.id} 
-                                className={`hover:bg-gray-50 transition-colors 
-                                    ${item.status === 'analyzing' ? 'bg-blue-50/40 animate-pulse-subtle' : ''}`}
-                            >
-                                <td className="px-6 py-4">
-                                    <div className="flex items-center gap-2 text-gray-900 font-medium max-w-[150px] truncate" title={item.file.name}>
-                                        <FileText className="w-4 h-4 text-gray-400" />
-                                        <span className="truncate">{item.file.name}</span>
-                                    </div>
-                                </td>
-                                <td className="px-6 py-4 text-gray-700">
-                                    {item.result?.candidateName || '-'}
-                                </td>
-                                <td className="px-6 py-4">
-                                    {getStatusBadge(item)}
-                                </td>
-                                <td className="px-6 py-4">
-                                    {item.result ? (
-                                        <div className="flex items-center gap-1.5" title={item.result.recommendation}>
-                                            {getRecIcon(item.result.recommendation)}
-                                            <span className="text-gray-600 text-xs">{
-                                                item.result.recommendation === HiringRecommendation.HIRE ? '录用' :
-                                                item.result.recommendation === HiringRecommendation.MAYBE ? '待定' : '淘汰'
-                                            }</span>
+                        {processedItems.map((item) => {
+                            const isTopHire = topHireIds.has(item.file.id);
+
+                            return (
+                                <tr 
+                                    key={item.file.id} 
+                                    className={`hover:bg-gray-50 transition-colors 
+                                        ${item.status === 'analyzing' ? 'bg-blue-50/40 animate-pulse-subtle' : ''} 
+                                        ${isTopHire ? 'bg-green-50/60 border-l-4 border-green-200' : ''}`}
+                                >
+                                    <td className="px-6 py-4">
+                                        <div className="flex items-center gap-2 text-gray-900 font-medium max-w-[150px] truncate" title={item.file.name}>
+                                            <FileText className="w-4 h-4 text-gray-400" />
+                                            <span className="truncate">{item.file.name}</span>
                                         </div>
-                                    ) : '-'}
-                                </td>
-                                <td className="px-6 py-4 text-gray-500 max-w-xs truncate" title={item.result?.headline}>
-                                    {item.result?.headline || '-'}
-                                </td>
-                                <td className="px-6 py-4 text-right">
-                                    {item.status === 'completed' && (
-                                        <button 
-                                            onClick={() => onViewDetails(item)}
-                                            className="text-blue-600 hover:text-blue-800 font-medium text-xs inline-flex items-center gap-1"
-                                        >
-                                            详情 <ChevronRight className="w-3 h-3" />
-                                        </button>
-                                    )}
-                                </td>
-                            </tr>
-                        ))}
+                                    </td>
+                                    <td className="px-6 py-4 text-gray-700">
+                                        <div className="flex items-center gap-2">
+                                            <span>{item.result?.candidateName || '-'}</span>
+                                            {isTopHire && item.result && (
+                                                <span className="text-[11px] font-semibold text-green-700 bg-green-100 border border-green-200 px-2 py-0.5 rounded-full">
+                                                    录取名额
+                                                </span>
+                                            )}
+                                        </div>
+                                    </td>
+                                    <td className="px-6 py-4">
+                                        {getStatusBadge(item)}
+                                    </td>
+                                    <td className="px-6 py-4">
+                                        {item.result ? (
+                                            <div className="flex items-center gap-1.5" title={item.result.recommendation}>
+                                                {getRecIcon(item.result.recommendation)}
+                                                <span className="text-gray-600 text-xs">{
+                                                    item.result.recommendation === HiringRecommendation.HIRE ? '录用' :
+                                                    item.result.recommendation === HiringRecommendation.MAYBE ? '待定' : '淘汰'
+                                                }</span>
+                                            </div>
+                                        ) : '-'}
+                                    </td>
+                                    <td className="px-6 py-4 text-gray-500 max-w-xs truncate" title={item.result?.headline}>
+                                        {item.result?.headline || '-'}
+                                    </td>
+                                    <td className="px-6 py-4 text-right">
+                                        {item.status === 'completed' && (
+                                            <button 
+                                                onClick={() => onViewDetails(item)}
+                                                className="text-blue-600 hover:text-blue-800 font-medium text-xs inline-flex items-center gap-1"
+                                            >
+                                                详情 <ChevronRight className="w-3 h-3" />
+                                            </button>
+                                        )}
+                                    </td>
+                                </tr>
+                            );
+                        })}
                          {processedItems.length === 0 && (
                             <tr>
                                 <td colSpan={6} className="px-6 py-12 text-center text-gray-400">

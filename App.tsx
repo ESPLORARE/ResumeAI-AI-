@@ -20,7 +20,7 @@ interface ToastMessage {
 function App() {
   const [files, setFiles] = useState<UploadedFile[]>([]
   );
-  const [jobContext, setJobContext] = useState<JobContext>({ title: '', description: '' });
+  const [jobContext, setJobContext] = useState<JobContext>({ title: '', description: '', headcount: 3 });
   
   // Batch State
   const [batchItems, setBatchItems] = useState<BatchItem[]>([]);
@@ -176,7 +176,8 @@ function App() {
   const handleRestoreSession = (session: HistorySession) => {
       setJobContext({
           title: session.jobTitle,
-          description: session.jobDescription
+          description: session.jobDescription,
+          headcount: session.headcount ?? 3
       });
       // We might not have the original 'files' strictly separate if we stripped content
       // But for display purposes, we reconstruct files from batch items
@@ -334,7 +335,11 @@ function App() {
         {/* VIEW: LIST (Batch Results) */}
         {currentView === 'list' && (
             <div className="animate-fade-in">
-                <BatchResults items={batchItems} onViewDetails={handleViewDetails} />
+                <BatchResults 
+                    items={batchItems} 
+                    onViewDetails={handleViewDetails} 
+                    headcount={jobContext.headcount}
+                />
                 {isProcessing && (
                     <div className="mt-4 p-4 bg-blue-50 text-blue-700 rounded-xl flex items-center justify-center gap-2">
                         <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-700"></div>

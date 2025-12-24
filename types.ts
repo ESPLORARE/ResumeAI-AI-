@@ -53,6 +53,7 @@ export interface InterviewPlan {
 export interface JobContext {
   title: string;
   description: string;
+  headcount?: number; // 计划录取人数
 }
 
 export type FileType = 'text' | 'image' | 'pdf';
@@ -79,6 +80,7 @@ export interface HistorySession {
   timestamp: number;
   jobTitle: string;
   jobDescription: string;
+  headcount?: number;
   items: BatchItem[];
   totalCandidates: number;
   averageScore: number;
